@@ -10,7 +10,6 @@
 .pydevproject
 
 *.dat
-sessions/*
-node_modules/*
-
-publisher.log
+*__pycache__
+data*
+logdir*
