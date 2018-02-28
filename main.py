@@ -5,12 +5,13 @@ Created on 2018/2/10.
 @author: Dxq
 '''
 import os
-import numpy as np
 import tensorflow as tf
+
+import numpy as np
 from tqdm import tqdm
 
 from config import cfg
-from utils import load_data
+from utils import load_data, get_batch_data
 from Net import DxqNet
 
 
@@ -45,90 +46,111 @@ def save_to():
         return (fd_test_acc)
 
 
-def train(model, supervisor, num_label):
-    trX, trY, num_tr_batch, valX, valY, num_val_batch = load_data(cfg.dataset, cfg.batch_size, is_training=True)
-    Y = valY[:num_val_batch * cfg.batch_size].reshape((-1, 1))
-
+def train(model, supervisor):
     fd_train_acc, fd_loss, fd_val_acc = save_to()
+    num_tr_batch = 55000 // cfg.batch_size
+    num_val_batch = 5000 // cfg.batch_size
+
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     with supervisor.managed_session(config=config) as sess:
         print("\nNote: all of results will be saved to directory: " + cfg.results)
         for epoch in range(cfg.epoch):
-            print("Training for epoch %d/%d:" % (epoch, cfg.epoch))
+            print("Training for epoch %d/%d:" % (epoch + 1, cfg.epoch))
             if supervisor.should_stop():
                 print('supervisor stoped!')
                 break
-            for step in tqdm(range(num_tr_batch), total=num_tr_batch, ncols=70, leave=False, unit='b'):
-                start = step * cfg.batch_size
-                end = start + cfg.batch_size
-                global_step = epoch * num_tr_batch + step
+            coord = tf.train.Coordinator()
+            threads = tf.train.start_queue_runners(sess=sess, coord=coord)
 
+            for __ in tqdm(range(num_tr_batch), ncols=70, leave=False, unit='b'):
+                sess.run(model.train_op)
+                global_step = sess.run(model.global_step)
                 if global_step % cfg.train_sum_freq == 0:
-                    _, loss, train_acc, summary_str = sess.run(
-                        [model.train_op, model.total_loss, model.accuracy, model.train_summary])
+                    loss, train_acc, summary_str = sess.run([model.total_loss, model.accuracy, model.train_summary])
                     assert not np.isnan(loss), 'Something wrong! loss is nan...'
                     supervisor.summary_writer.add_summary(summary_str, global_step)
 
                     fd_loss.write(str(global_step) + ',' + str(loss) + "\n")
                     fd_loss.flush()
-                    fd_train_acc.write(str(global_step) + ',' + str(train_acc / cfg.batch_size) + "\n")
+                    fd_train_acc.write(str(global_step) + ',' + str(train_acc) + "\n")
                     fd_train_acc.flush()
-                else:
-                    sess.run(model.train_op)
 
-                if cfg.val_sum_freq != 0 and (global_step) % cfg.val_sum_freq == 0:
+                if cfg.val_sum_freq != 0 and (global_step % cfg.val_sum_freq == 0):
                     val_acc = 0
+                    valX, vallabels = sess.run([model.valX, model.vallabels])
                     for i in range(num_val_batch):
-                        start = i * cfg.batch_size
-                        end = start + cfg.batch_size
-                        acc = sess.run(model.accuracy, {model.X: valX[start:end], model.labels: valY[start:end]})
+                        acc = sess.run(model.accuracy, {model.X: valX, model.labels: vallabels})
                         val_acc += acc
-                    val_acc = val_acc / (cfg.batch_size * num_val_batch)
+                    val_acc = val_acc / num_val_batch
                     fd_val_acc.write(str(global_step) + ',' + str(val_acc) + '\n')
                     fd_val_acc.flush()
 
+            coord.request_stop()
+            coord.join(threads)
             if (epoch + 1) % cfg.save_freq == 0:
                 supervisor.saver.save(sess, cfg.logdir + '/model_epoch_%04d_step_%02d' % (epoch, global_step))
 
-        fd_val_acc.close()
-        fd_train_acc.close()
-        fd_loss.close()
+    fd_val_acc.close()
+    fd_train_acc.close()
+    fd_loss.close()
 
 
-def evaluation(model, supervisor, num_label):
-    teX, teY, num_te_batch = load_data(cfg.dataset, cfg.batch_size, is_training=False)
+def evaluation():
+    num_te_batch = 500 // cfg.batch_size
     fd_test_acc = save_to()
-    with supervisor.managed_session(config=tf.ConfigProto(allow_soft_placement=True)) as sess:
-        supervisor.saver.restore(sess, tf.train.latest_checkpoint(cfg.logdir))
-        tf.logging.info('Model restored!')
+    with tf.Session() as sess:
+        saver = tf.train.import_meta_graph(cfg.logdir + '/model_epoch_0001_step_4719.meta')
+        saver.restore(sess, cfg.logdir + '/model_epoch_0001_step_4719')
+        graph = tf.get_default_graph()
 
+        for ii in graph.get_collection(name=tf.GraphKeys.QUEUE_RUNNERS):
+            print(ii)
+        print(len(graph.get_collection(name=tf.GraphKeys.QUEUE_RUNNERS)))
+        teX, teY = get_batch_data(cfg.dataset, cfg.batch_size, cfg.num_threads, train_mode='test', graph=sess.graph)
+
+        tf.logging.info('Model restored!')
+        sess.run(tf.local_variables_initializer())
+        # sess.run(tf.global_variables_initializer())
         test_acc = 0
-        for i in tqdm(range(num_te_batch), total=num_te_batch, ncols=70, leave=False, unit='b'):
-            start = i * cfg.batch_size
-            end = start + cfg.batch_size
-            acc = sess.run(model.accuracy, {model.X: teX[start:end], model.labels: teY[start:end]})
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord, sess=sess,start=True)
+
+        for i in tqdm(range(num_te_batch), ncols=70, leave=False, unit='b'):
+            # print(tf.train.latest_checkpoint('./'))
+            X = graph.get_tensor_by_name('shuffle_batch:0')
+            labels = graph.get_tensor_by_name('shuffle_batch:1')
+            print(len(threads))
+            accuracy = graph.get_tensor_by_name('acc:0')
+            tteX, tteY = sess.run([teX, teY])
+            print(len(threads))
+            acc = sess.run(accuracy, {X: tteX, labels: tteY})
             test_acc += acc
-        test_acc = test_acc / (cfg.batch_size * num_te_batch)
+
+        test_acc = test_acc / num_te_batch
         fd_test_acc.write(str(test_acc))
         fd_test_acc.close()
         print('Test accuracy has been saved to ' + cfg.results + '/test_acc.csv')
 
+        coord.request_stop()
+        print(len(threads))
+        # for th in threads:
+        #     print(th, '\n')
+        coord.join(threads)
+
 
 def main(_):
-    tf.logging.info(' Loading Graph...')
-    num_label = 10
+    tf.logging.info('Loading Graph...')
     model = DxqNet()
-    tf.logging.info(' Graph loaded')
-
+    tf.logging.info('Graph loaded ' + str(model.graph))
     sv = tf.train.Supervisor(graph=model.graph, logdir=cfg.logdir, save_model_secs=0)
 
     if cfg.is_training:
         tf.logging.info(' Start training...')
-        train(model, sv, num_label)
+        train(model, sv)
         tf.logging.info('Training done')
     else:
-        evaluation(model, sv, num_label)
+        evaluation()
 
 
 if __name__ == "__main__":
