@@ -17,6 +17,14 @@ tf.app.flags.DEFINE_string("signature_name", "", "The model signature name")
 tf.app.flags.DEFINE_float("request_timeout", 10.0, "Timeout of gRPC request")
 FLAGS = tf.app.flags.FLAGS
 
+# Create gRPC client
+channel = implementations.insecure_channel(FLAGS.host, FLAGS.port)
+print(channel)
+stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
+print(stub)
+request = predict_pb2.PredictRequest()
+print(request)
+
 
 def main():
     # Generate inference data
@@ -27,14 +35,6 @@ def main():
          [9, 8, 7, 6, 5, 4, 3, 2, 1], [9, 9, 9, 9, 9, 9, 9, 9, 9]])
     features_tensor_proto = tf.contrib.util.make_tensor_proto(
         features, dtype=tf.float32)
-
-    # Create gRPC client
-    channel = implementations.insecure_channel(FLAGS.host, FLAGS.port)
-    print(channel)
-    stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
-    print(stub)
-    request = predict_pb2.PredictRequest()
-    print(request)
 
     # request.model_spec.name = FLAGS.model_name
     # if FLAGS.model_version > 0:
