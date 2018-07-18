@@ -30,19 +30,23 @@ def main():
 
     # Create gRPC client
     channel = implementations.insecure_channel(FLAGS.host, FLAGS.port)
+    print(channel)
     stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
+    print(stub)
     request = predict_pb2.PredictRequest()
-    request.model_spec.name = FLAGS.model_name
-    if FLAGS.model_version > 0:
-        request.model_spec.version.value = FLAGS.model_version
-    if FLAGS.signature_name != "":
-        request.model_spec.signature_name = FLAGS.signature_name
-    request.inputs["keys"].CopyFrom(keys_tensor_proto)
-    request.inputs["features"].CopyFrom(features_tensor_proto)
+    print(request)
 
+    # request.model_spec.name = FLAGS.model_name
+    # if FLAGS.model_version > 0:
+    #     request.model_spec.version.value = FLAGS.model_version
+    # if FLAGS.signature_name != "":
+    #     request.model_spec.signature_name = FLAGS.signature_name
+    # request.inputs["keys"].CopyFrom(keys_tensor_proto)
+    # request.inputs["features"].CopyFrom(features_tensor_proto)
+    #
     # Send request
-    result = stub.Predict(request, FLAGS.request_timeout)
-    print(result)
+    # result = stub.Predict(request, FLAGS.request_timeout)
+    # print(result)
 
 
 if __name__ == "__main__":
