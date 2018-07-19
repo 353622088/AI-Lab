@@ -8,6 +8,8 @@ import numpy
 import tensorflow as tf
 from grpc.beta import implementations
 from tensorflow_serving.apis import predict_pb2, prediction_service_pb2
+from tensorflow_serving.example import mnist_saved_model
+import numpy as np
 
 tf.app.flags.DEFINE_string("host", "0.0.0.0", "TensorFlow Serving server ip")
 tf.app.flags.DEFINE_integer("port", 8500, "TensorFlow Serving server port")
@@ -23,8 +25,11 @@ print(channel)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 print(stub)
 request = predict_pb2.PredictRequest()
+request.model_spec.name = 'mnist'
+trx = np.zeros(shape=[1, 224, 224, 3])
+request.input['features'].CopyFrom(tf.contrib.util.make_tensor_proto(trx, shape=[1, 224, 224, 3]))
 print(request)
-
+result = stub.Predict(request, FLAGS.request_timeout)
 
 def main():
     # Generate inference data
