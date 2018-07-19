@@ -24,7 +24,7 @@ print(channel)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 print(stub)
 request = predict_pb2.PredictRequest()
-request.model_spec.name = 'test'
+request.model_spec.name = ''
 trx = np.zeros(shape=[1, 224, 224, 3])
 # trx = np.arange(100, step=1, dtype=np.float32)
 print(trx.shape)
