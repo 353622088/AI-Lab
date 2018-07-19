@@ -37,22 +37,22 @@ with tf.variable_scope('test'):
 
     opt = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
 
-        for _ in range(n_steps):
-            print(_)
-            indices = np.random.choice(n_samples, batch_size)
-            x_batch = x_data[indices]
-            y_batch = y_data[indices]
-            _, loss_val = sess.run([opt, loss], feed_dict={x: x_batch, y: y_batch})
+    for _ in range(n_steps):
+        print(_)
+        indices = np.random.choice(n_samples, batch_size)
+        x_batch = x_data[indices]
+        y_batch = y_data[indices]
+        _, loss_val = sess.run([opt, loss], feed_dict={x: x_batch, y: y_batch})
 
-        saver = tf.train.Saver()
+    saver = tf.train.Saver()
 
-        model_exporter = exporter.Exporter(saver)
-        model_exporter.init(
-            sess.graph.as_graph_def(),
-            named_graph_signatures={
-                'inputs': exporter.generic_signature({'x': x}),
-                'outputs': exporter.generic_signature({'y': y_pred})})
-        model_exporter.export('', tf.constant(1), sess)
+    model_exporter = exporter.Exporter(saver)
+    model_exporter.init(
+        sess.graph.as_graph_def(),
+        named_graph_signatures={
+            'inputs': exporter.generic_signature({'x': x}),
+            'outputs': exporter.generic_signature({'y': y_pred})})
+    model_exporter.export('', tf.constant(1), sess)
