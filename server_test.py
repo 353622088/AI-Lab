@@ -55,4 +55,4 @@ with tf.variable_scope('test'):
             named_graph_signatures={
                 'inputs': exporter.generic_signature({'x': x}),
                 'outputs': exporter.generic_signature({'y': y_pred})})
-        model_exporter.export('', tf.constant(3), sess)
+        model_exporter.export('', tf.constant(1), sess)
