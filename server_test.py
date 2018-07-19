@@ -48,8 +48,6 @@ with tf.variable_scope('test'):
             _, loss_val = sess.run([opt, loss], feed_dict={x: x_batch, y: y_batch})
 
         saver = tf.train.Saver()
-        saver.save(sess, 'a.ckpt')
-        saver.restore(sess, 'a.ckpt')
 
         model_exporter = exporter.Exporter(saver)
         model_exporter.init(
