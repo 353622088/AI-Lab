@@ -8,7 +8,6 @@ import numpy
 import tensorflow as tf
 from grpc.beta import implementations
 from tensorflow_serving.apis import predict_pb2, prediction_service_pb2
-from tensorflow_serving.example import mnist_saved_model
 import numpy as np
 
 tf.app.flags.DEFINE_string("host", "0.0.0.0", "TensorFlow Serving server ip")
