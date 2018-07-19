@@ -11,8 +11,8 @@ from tensorflow_serving.apis import predict_pb2, prediction_service_pb2
 import numpy as np
 
 tf.app.flags.DEFINE_string("host", "0.0.0.0", "TensorFlow Serving server ip")
-tf.app.flags.DEFINE_integer("port", 8500, "TensorFlow Serving server port")
-tf.app.flags.DEFINE_string("model_name", "default", "The model name")
+tf.app.flags.DEFINE_integer("port", 9000, "TensorFlow Serving server port")
+tf.app.flags.DEFINE_string("model_name", "mnist", "The model name")
 tf.app.flags.DEFINE_integer("model_version", -1, "The model version")
 tf.app.flags.DEFINE_string("signature_name", "", "The model signature name")
 tf.app.flags.DEFINE_float("request_timeout", 10.0, "Timeout of gRPC request")
