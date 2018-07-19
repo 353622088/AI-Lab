@@ -27,7 +27,8 @@ request = predict_pb2.PredictRequest()
 request.model_spec.name = 'test'
 # trx = np.zeros(shape=[1, 224, 224, 3])
 trx = np.arange(1000, 1, dtype=np.float32)
-trx = np.reshape(trx, (1000, 1))
+
+trx = np.reshape(trx, [1000, 1])
 request.inputs['x'].CopyFrom(tf.contrib.util.make_tensor_proto(trx, shape=[100, 1]))
 print(request)
 result = stub.Predict(request, FLAGS.request_timeout)

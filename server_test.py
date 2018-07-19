@@ -4,12 +4,16 @@ created on 2018/7/19
 
 @author:sw-git01
 '''
-import tensorflow as tf
-import tensorflow.contrib.session_bundle.exporter as exporter
+# import tensorflow as tf
+# import tensorflow.contrib.session_bundle.exporter as exporter
 import numpy as np
 
 x_data = np.arange(100, step=.1)
-
+print(x_data)
+print(x_data.shape)
+b=np.reshape(x_data,[1000,1])
+print(b.shape)
+assert 1==0
 n_samples = 1000
 y_data = x_data + 20 * np.sin(x_data / 10)
 x_data = np.reshape(x_data, (n_samples, 1))
