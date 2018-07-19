@@ -12,7 +12,7 @@ import numpy as np
 
 tf.app.flags.DEFINE_string("host", "0.0.0.0", "TensorFlow Serving server ip")
 tf.app.flags.DEFINE_integer("port", 9000, "TensorFlow Serving server port")
-tf.app.flags.DEFINE_string("model_name", "mnist", "The model name")
+tf.app.flags.DEFINE_string("model_name", "test", "The model name")
 tf.app.flags.DEFINE_integer("model_version", -1, "The model version")
 tf.app.flags.DEFINE_string("signature_name", "", "The model signature name")
 tf.app.flags.DEFINE_float("request_timeout", 10.0, "Timeout of gRPC request")
@@ -24,9 +24,11 @@ print(channel)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 print(stub)
 request = predict_pb2.PredictRequest()
-request.model_spec.name = 'mnist'
-trx = np.zeros(shape=[1, 224, 224, 3])
-request.inputs['features'].CopyFrom(tf.contrib.util.make_tensor_proto(trx, shape=[1, 224, 224, 3]))
+request.model_spec.name = 'test'
+# trx = np.zeros(shape=[1, 224, 224, 3])
+trx = np.arange(1000, 1, dtype=np.float32)
+trx = np.reshape(trx, (1000, 1))
+request.inputs['x'].CopyFrom(tf.contrib.util.make_tensor_proto(trx, shape=[100, 1]))
 print(request)
 result = stub.Predict(request, FLAGS.request_timeout)
 print(result)
