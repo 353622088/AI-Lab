@@ -4,8 +4,8 @@ created on 2018/7/19
 
 @author:sw-git01
 '''
-# import tensorflow as tf
-# import tensorflow.contrib.session_bundle.exporter as exporter
+import tensorflow as tf
+import tensorflow.contrib.session_bundle.exporter as exporter
 import numpy as np
 
 x_data = np.arange(100, step=.1)
@@ -28,31 +28,30 @@ x = tf.placeholder(tf.float32, shape=(batch_size, 1))
 
 y = tf.placeholder(tf.float32, shape=(batch_size, 1))
 
-with tf.variable_scope('test'):
-    w = tf.get_variable('weights', (1, 1), initializer=tf.random_normal_initializer())
-    b = tf.get_variable('bias', (1,), initializer=tf.constant_initializer(0))
+w = tf.get_variable('weights', (1, 1), initializer=tf.random_normal_initializer())
+b = tf.get_variable('bias', (1,), initializer=tf.constant_initializer(0))
 
-    y_pred = tf.matmul(x, w) + b
-    loss = tf.reduce_sum((y - y_pred) ** 2 / n_samples)
+y_pred = tf.matmul(x, w) + b
+loss = tf.reduce_sum((y - y_pred) ** 2 / n_samples)
 
-    opt = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
+opt = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
 
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
 
-        for _ in range(n_steps):
-            print(_)
-            indices = np.random.choice(n_samples, batch_size)
-            x_batch = x_data[indices]
-            y_batch = y_data[indices]
-            _, loss_val = sess.run([opt, loss], feed_dict={x: x_batch, y: y_batch})
+    for _ in range(n_steps):
+        print(_)
+        indices = np.random.choice(n_samples, batch_size)
+        x_batch = x_data[indices]
+        y_batch = y_data[indices]
+        _, loss_val = sess.run([opt, loss], feed_dict={x: x_batch, y: y_batch})
 
-        saver = tf.train.Saver()
+    saver = tf.train.Saver()
 
-        model_exporter = exporter.Exporter(saver)
-        model_exporter.init(
-            sess.graph.as_graph_def(),
-            named_graph_signatures={
-                'inputs': exporter.generic_signature({'x': x}),
-                'outputs': exporter.generic_signature({'y': y_pred})})
-        model_exporter.export('', tf.constant(1), sess)
+    model_exporter = exporter.Exporter(saver)
+    model_exporter.init(
+        sess.graph.as_graph_def(),
+        named_graph_signatures={
+            'inputs': exporter.generic_signature({'x': x}),
+            'outputs': exporter.generic_signature({'y': y_pred})})
+    model_exporter.export('', tf.constant(2), sess)
