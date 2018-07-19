@@ -28,7 +28,7 @@ request.model_spec.name = 'dxq'
 trx = np.zeros(shape=[1, 224, 224, 3])
 # trx = np.arange(100, step=1, dtype=np.float32)
 print(trx.shape)
-trx = np.reshape(trx, [100, 1])
+# trx = np.reshape(trx, [100, 1])
 request.inputs['x'].CopyFrom(tf.contrib.util.make_tensor_proto(trx, shape=[1, 224, 224, 3]))
 print(request)
 result = stub.Predict(request, FLAGS.request_timeout)
