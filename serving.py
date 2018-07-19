@@ -14,7 +14,7 @@ tf.app.flags.DEFINE_string("host", "0.0.0.0", "TensorFlow Serving server ip")
 tf.app.flags.DEFINE_integer("port", 9000, "TensorFlow Serving server port")
 tf.app.flags.DEFINE_string("model_name", "dxq", "The model name")
 tf.app.flags.DEFINE_integer("model_version", -1, "The model version")
-tf.app.flags.DEFINE_string("signature_name", "", "The model signature name")
+tf.app.flags.DEFINE_string("signature_name", "predict_images", "The model signature name")
 tf.app.flags.DEFINE_float("request_timeout", 100.0, "Timeout of gRPC request")
 FLAGS = tf.app.flags.FLAGS
 
