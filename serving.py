@@ -29,7 +29,7 @@ request.model_spec.name = FLAGS.model_name
 request.model_spec.signature_name = FLAGS.signature_name
 # trx = np.zeros(shape=[1, 224, 224, 3])
 
-im = np.array(Image.open('1.jpg').reszie([224, 224]))
+im = np.array(Image.open('1.jpg').resize([224, 224]))
 # trx = np.arange(100, step=1, dtype=np.float32)
 # print(trx.shape)
 # trx = np.reshape(trx, [100, 1])
