@@ -35,7 +35,7 @@ im = np.array(Image.open('1.jpg').resize([224, 224]))
 # trx = np.reshape(trx, [100, 1])
 request.inputs['x'].CopyFrom(tf.contrib.util.make_tensor_proto(im.astype(dtype=np.float32), shape=[1, 224, 224, 3]))
 result = stub.Predict(request, FLAGS.request_timeout)
-output = np.array(result.outputs['y'].int64_val)
+output = result.outputs['y'][0]
 print(output)
 
 # def main():
