@@ -31,9 +31,10 @@ trx = np.zeros(shape=[1, 224, 224, 3])
 # print(trx.shape)
 # trx = np.reshape(trx, [100, 1])
 request.inputs['x'].CopyFrom(tf.contrib.util.make_tensor_proto(trx, shape=[1, 224, 224, 3]))
-print(request)
 result = stub.Predict(request, FLAGS.request_timeout)
 output = np.array(result.outputs['y'].int64_val)
+print(output)
+
 # def main():
 #     # Generate inference data
 #     keys = numpy.asarray([1, 2, 3, 4])
