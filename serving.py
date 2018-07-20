@@ -9,6 +9,7 @@ import tensorflow as tf
 from grpc.beta import implementations
 from tensorflow_serving.apis import predict_pb2, prediction_service_pb2
 import numpy as np
+from PIL import Image
 
 tf.app.flags.DEFINE_string("host", "0.0.0.0", "TensorFlow Serving server ip")
 tf.app.flags.DEFINE_integer("port", 9000, "TensorFlow Serving server port")
@@ -26,11 +27,13 @@ stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 request = predict_pb2.PredictRequest()
 request.model_spec.name = FLAGS.model_name
 request.model_spec.signature_name = FLAGS.signature_name
-trx = np.zeros(shape=[1, 224, 224, 3])
+# trx = np.zeros(shape=[1, 224, 224, 3])
+
+im=np.array(Image.open('1.jpg'))
 # trx = np.arange(100, step=1, dtype=np.float32)
 # print(trx.shape)
 # trx = np.reshape(trx, [100, 1])
-request.inputs['x'].CopyFrom(tf.contrib.util.make_tensor_proto(trx, shape=[1, 224, 224, 3]))
+request.inputs['x'].CopyFrom(tf.contrib.util.make_tensor_proto(im.astype(dtype=np.float32), shape=[1, 224, 224, 3]))
 result = stub.Predict(request, FLAGS.request_timeout)
 output = np.array(result.outputs['y'].int64_val)
 print(output)
