@@ -24,16 +24,16 @@ print(channel)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 # print(stub)
 request = predict_pb2.PredictRequest()
-request.model_spec.name = 'dxq'
+request.model_spec.name = FLAGS.model_name
 request.model_spec.signature_name = FLAGS.signature_name
 trx = np.zeros(shape=[1, 224, 224, 3])
 # trx = np.arange(100, step=1, dtype=np.float32)
 # print(trx.shape)
 # trx = np.reshape(trx, [100, 1])
 request.inputs['x'].CopyFrom(tf.contrib.util.make_tensor_proto(trx, shape=[1, 224, 224, 3]))
-# print(request)
+print(request)
 result = stub.Predict(request, FLAGS.request_timeout)
-# print(result)
+output = np.array(result.outputs['y'].int64_val)
 # def main():
 #     # Generate inference data
 #     keys = numpy.asarray([1, 2, 3, 4])
